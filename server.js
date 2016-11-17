@@ -1,19 +1,24 @@
 var path = require('path');
-
-var app = require('express')();
+var express = require('express');
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-app.get('/', function(req, res){
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+var TS = require('./public/ts.js');
 
-io.on('connection', function(socket){
-  socket.on('chat message', function(msg){
-    io.emit('chat message', msg);
+app.use(express.static('public'))
+
+io.on('connection', function(socket) {
+  console.log('io.on connection:', socket.id);
+  socket.on('message', function(msg) {
+
+	var message = new TS.Message(msg.type, msg.payload);
+	console.info(TS.GetMessageType(message.type), "Message received:", msg);
+
+    io.emit('message', msg);
   });
 });
 
-http.listen(3000, function(){
+http.listen(3000, function() {
   console.log('listening on *:3000');
 });
